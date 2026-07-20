@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">هنا حفرة</string>
+
+    <!-- الرئيسية -->
+    <string name="brand">هنا حفرة</string>
+    <string name="home_tagline">أبلغ عن الحفر في مدينة آسفي</string>
+    <string name="report_pothole">التبليغ عن حفرة</string>
+    <string name="developed_by">developped by MO-CH</string>
+    <string name="lang_toggle">Français</string>
+
+    <!-- الخريطة -->
+    <string name="map_title">خريطة الحفر</string>
+    <string name="loading">جارٍ التحميل…</string>
+    <string name="add">تبليغ</string>
+
+    <!-- الحالة -->
+    <string name="state_pothole">حفرة</string>
+    <string name="state_repaired">تم إصلاحها</string>
+
+    <!-- التفاصيل -->
+    <string name="declared_by">أبلغ عنها %1$s</string>
+    <string name="repaired_by">أصلحها %1$s</string>
+    <string name="on_date">بتاريخ %1$s</string>
+    <string name="mark_repaired">وضع علامة: تم الإصلاح</string>
+    <string name="close">إغلاق</string>
+
+    <!-- نموذج التبليغ -->
+    <string name="new_report_title">تبليغ جديد</string>
+    <string name="repair_report_title">الإبلاغ عن إصلاح</string>
+    <string name="your_name">اسمك</string>
+    <string name="state_label">الحالة</string>
+    <string name="discovery_date">تاريخ الاكتشاف</string>
+    <string name="pick_location">الموقع (المس الخريطة داخل آسفي)</string>
+    <string name="my_location">موقعي</string>
+    <string name="take_photo">التقاط صورة</string>
+    <string name="retake_photo">إعادة التقاط الصورة</string>
+    <string name="send">إرسال</string>
+    <string name="sending">جارٍ الإرسال…</string>
+
+    <!-- الرسائل -->
+    <string name="err_name">أدخل اسمك</string>
+    <string name="err_location">اختر موقعًا داخل آسفي</string>
+    <string name="err_photo">التقط صورة للحفرة</string>
+    <string name="err_upload">فشل إرسال الصورة. حاول مجددًا.</string>
+    <string name="err_save">فشل الحفظ. تحقق من اتصالك.</string>
+    <string name="err_out_of_safi">يجب أن يكون الموقع داخل مدينة آسفي</string>
+    <string name="ok_sent">شكرًا! تم تسجيل تبليغك.</string>
+    <string name="perm_location_needed">امنح إذن الموقع لاستخدام «موقعي».</string>
+    <string name="perm_camera_needed">امنح إذن الكاميرا لالتقاط صورة.</string>
+    <string name="config_missing">الإعداد ناقص: أدخل المفاتيح في secrets.xml (راجع SETUP.md).</string>
+</resources>

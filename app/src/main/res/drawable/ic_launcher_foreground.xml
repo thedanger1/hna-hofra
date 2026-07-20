@@ -1,0 +1,16 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Triangle de danger blanc, centré dans la zone de sécurité -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,32 L82,80 L26,80 Z" />
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M51,46 L57,46 L56,66 L52,66 Z" />
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M54,73 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+</vector>

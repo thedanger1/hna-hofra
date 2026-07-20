@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <!-- Contour blanc -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,48 m-44,0 a44,44 0 1,0 88,0 a44,44 0 1,0 -88,0" />
+    <!-- Cercle vert -->
+    <path
+        android:fillColor="#2E7D32"
+        android:pathData="M48,48 m-38,0 a38,38 0 1,0 76,0 a38,38 0 1,0 -76,0" />
+    <!-- Coche -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,49 L43,62 L68,34 L61,28 L42,49 L36,43 Z" />
+</vector>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hna Hofra</string>
+
+    <!-- Accueil -->
+    <string name="brand">هنا حفرة</string>
+    <string name="home_tagline">Signalez les nids-de-poule de Safi</string>
+    <string name="report_pothole">Réclamer un nid-de-poule</string>
+    <string name="developed_by">developped by MO-CH</string>
+    <string name="lang_toggle">العربية</string>
+
+    <!-- Carte -->
+    <string name="map_title">Carte des nids-de-poule</string>
+    <string name="loading">Chargement…</string>
+    <string name="add">Réclamer</string>
+
+    <!-- États -->
+    <string name="state_pothole">Nid-de-poule</string>
+    <string name="state_repaired">Réparé</string>
+
+    <!-- Détails -->
+    <string name="declared_by">Déclaré par %1$s</string>
+    <string name="repaired_by">Réparé par %1$s</string>
+    <string name="on_date">le %1$s</string>
+    <string name="mark_repaired">Marquer comme réparé</string>
+    <string name="close">Fermer</string>
+
+    <!-- Formulaire de réclamation -->
+    <string name="new_report_title">Nouvelle réclamation</string>
+    <string name="repair_report_title">Signaler une réparation</string>
+    <string name="your_name">Votre nom</string>
+    <string name="state_label">État</string>
+    <string name="discovery_date">Date de découverte</string>
+    <string name="pick_location">Emplacement (touchez la carte dans Safi)</string>
+    <string name="my_location">Ma position</string>
+    <string name="take_photo">Prendre une photo</string>
+    <string name="retake_photo">Reprendre la photo</string>
+    <string name="send">Envoyer</string>
+    <string name="sending">Envoi en cours…</string>
+
+    <!-- Messages -->
+    <string name="err_name">Entrez votre nom</string>
+    <string name="err_location">Choisissez un emplacement dans Safi</string>
+    <string name="err_photo">Prenez une photo du trou</string>
+    <string name="err_upload">Échec de l\'envoi de la photo. Réessayez.</string>
+    <string name="err_save">Échec de l\'enregistrement. Vérifiez votre connexion.</string>
+    <string name="err_out_of_safi">L\'emplacement doit être dans la ville de Safi</string>
+    <string name="ok_sent">Merci ! Votre réclamation a été enregistrée.</string>
+    <string name="perm_location_needed">Autorisez la localisation pour utiliser « Ma position ».</string>
+    <string name="perm_camera_needed">Autorisez l\'appareil photo pour prendre une photo.</string>
+    <string name="config_missing">Configuration manquante : renseignez les clés dans secrets.xml (voir SETUP.md).</string>
+</resources>

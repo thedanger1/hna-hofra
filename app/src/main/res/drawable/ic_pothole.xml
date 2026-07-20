@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <!-- Contour blanc pour lisibilité sur la carte -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,6 L92,84 L4,84 Z" />
+    <!-- Triangle de danger rouge -->
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M48,14 L84,80 L12,80 Z" />
+    <!-- Point d'exclamation -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M44,34 L52,34 L51,60 L45,60 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,64 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+</vector>
