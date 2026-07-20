@@ -52,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -67,12 +68,15 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.Dash
+import com.google.android.gms.maps.model.Gap
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.hnahofra.app.R
 import com.hnahofra.app.data.ImgbbUploader
@@ -336,6 +340,13 @@ fun ReportScreen(
                     }
                 }
             ) {
+                Polygon(
+                    points = Safi.BOUNDARY,
+                    strokeColor = Color(0xFFD32F2F),
+                    strokeWidth = 6f,
+                    fillColor = Color(0x14D32F2F),
+                    strokePattern = listOf(Dash(30f), Gap(20f))
+                )
                 picked?.let { Marker(state = MarkerState(position = it)) }
             }
 
