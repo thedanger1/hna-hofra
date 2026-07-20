@@ -43,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -91,8 +92,16 @@ fun MapScreen(
         !p.isRepaired || (now - p.dateMillis) <= TEN_DAYS_MS
     }
 
-    val openIcon = remember { MapIcons.fromVector(context, R.drawable.ic_pothole) }
-    val repairedIcon = remember { MapIcons.fromVector(context, R.drawable.ic_repaired) }
+    // On s'assure que le SDK Maps est initialisé avant de fabriquer les icônes
+    // (BitmapDescriptorFactory), sinon crash à l'entrée sur la carte.
+    val openIcon = remember {
+        MapsInitializer.initialize(context)
+        MapIcons.fromVector(context, R.drawable.ic_pothole)
+    }
+    val repairedIcon = remember {
+        MapsInitializer.initialize(context)
+        MapIcons.fromVector(context, R.drawable.ic_repaired)
+    }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(Safi.CENTER, Safi.DEFAULT_ZOOM)
