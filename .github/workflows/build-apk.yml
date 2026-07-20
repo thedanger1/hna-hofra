@@ -22,19 +22,19 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.7'
+          gradle-version: '8.9'
 
-      - name: Build debug APK
-        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: Build release APK (signed with permanent key)
+        run: gradle assembleRelease --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: hna-hofra-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: hna-hofra-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
