@@ -9,8 +9,16 @@ import com.hnahofra.app.R
  */
 object SupabaseConfig {
 
-    fun url(context: Context): String =
-        context.getString(R.string.supabase_url).trimEnd('/')
+    /**
+     * URL de base du projet (sans chemin). On tolère que l'utilisateur ait
+     * collé l'URL avec un suffixe "/rest/v1" : on le retire pour éviter un
+     * doublon de chemin.
+     */
+    fun url(context: Context): String {
+        var u = context.getString(R.string.supabase_url).trim().trimEnd('/')
+        if (u.endsWith("/rest/v1")) u = u.removeSuffix("/rest/v1")
+        return u.trimEnd('/')
+    }
 
     fun anonKey(context: Context): String =
         context.getString(R.string.supabase_anon_key)
