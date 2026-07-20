@@ -3,14 +3,17 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Triangle de danger blanc, centré dans la zone de sécurité -->
+    <!-- Nid-de-poule (trou) centré dans la zone de sécurité -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,32 L82,80 L26,80 Z" />
+        android:fillColor="#FFD600"
+        android:pathData="M54,80 m-28,0 a28,11 0 1,0 56,0 a28,11 0 1,0 -56,0" />
     <path
-        android:fillColor="#D32F2F"
-        android:pathData="M51,46 L57,46 L56,66 L52,66 Z" />
+        android:fillColor="#263238"
+        android:pathData="M54,80 m-21,0 a21,7 0 1,0 42,0 a21,7 0 1,0 -42,0" />
+    <!-- Flèche vers le bas qui désigne le trou -->
     <path
-        android:fillColor="#D32F2F"
-        android:pathData="M54,73 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+        android:fillColor="#FFD600"
+        android:strokeColor="#263238"
+        android:strokeWidth="3"
+        android:pathData="M47,24 L61,24 L61,50 L72,50 L54,70 L36,50 L47,50 Z" />
 </vector>

@@ -1,11 +1,13 @@
 package com.hnahofra.app.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,6 +43,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +60,12 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -97,6 +106,7 @@ fun ReportScreen(
     }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var pendingPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    var focusRequest by remember { mutableStateOf<LatLng?>(null) }
     var dateMillis by remember { mutableStateOf(System.currentTimeMillis()) }
     var sending by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -126,25 +136,65 @@ fun ReportScreen(
     fun fetchLocation() {
         scope.launch {
             val loc = LocationHelper.current(context)
-            if (loc != null && Safi.contains(loc.first, loc.second)) {
-                picked = LatLng(loc.first, loc.second)
-            } else {
-                toast(context, R.string.err_out_of_safi)
+            when {
+                loc == null -> toast(context, R.string.err_location_unavailable)
+                !Safi.contains(loc.first, loc.second) -> toast(context, R.string.err_out_of_safi)
+                else -> {
+                    val p = LatLng(loc.first, loc.second)
+                    picked = p
+                    focusRequest = p
+                }
             }
         }
+    }
+
+    // Dialogue système « Activer la localisation » si le GPS est éteint.
+    val enableLocationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) fetchLocation()
+        else toast(context, R.string.err_location_unavailable)
+    }
+
+    // Vérifie que la localisation est activée ; sinon, propose de l'activer,
+    // puis récupère la position.
+    fun requestLocationThenFetch() {
+        val request = LocationSettingsRequest.Builder()
+            .addLocationRequest(
+                LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L).build()
+            )
+            .setAlwaysShow(true)
+            .build()
+        LocationServices.getSettingsClient(context)
+            .checkLocationSettings(request)
+            .addOnSuccessListener { fetchLocation() }
+            .addOnFailureListener { e ->
+                if (e is ResolvableApiException) {
+                    try {
+                        enableLocationLauncher.launch(
+                            IntentSenderRequest.Builder(e.resolution).build()
+                        )
+                    } catch (_: Exception) {
+                        toast(context, R.string.err_location_unavailable)
+                    }
+                } else {
+                    fetchLocation()
+                }
+            }
     }
 
     val locationPerm = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) fetchLocation() else toast(context, R.string.perm_location_needed)
+        if (granted) requestLocationThenFetch() else toast(context, R.string.perm_location_needed)
     }
 
     fun onMyLocation() {
         val granted = ContextCompat.checkSelfPermission(
             context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        if (granted) fetchLocation() else locationPerm.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        if (granted) requestLocationThenFetch()
+        else locationPerm.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
     fun submit() {
@@ -189,6 +239,13 @@ fun ReportScreen(
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(picked ?: Safi.CENTER, Safi.DEFAULT_ZOOM)
+    }
+
+    // Recentre la carte sur la position trouvée via « Ma position ».
+    LaunchedEffect(focusRequest) {
+        focusRequest?.let {
+            cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(it, 16f))
+        }
     }
 
     Scaffold(

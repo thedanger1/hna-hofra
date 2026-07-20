@@ -47,6 +47,7 @@
     <string name="err_out_of_safi">L\'emplacement doit être dans la ville de Safi</string>
     <string name="ok_sent">Merci ! Votre réclamation a été enregistrée.</string>
     <string name="perm_location_needed">Autorisez la localisation pour utiliser « Ma position ».</string>
+    <string name="err_location_unavailable">Localisation indisponible. Activez le GPS et réessayez.</string>
     <string name="perm_camera_needed">Autorisez l\'appareil photo pour prendre une photo.</string>
     <string name="config_missing">Configuration manquante : renseignez les clés dans secrets.xml (voir SETUP.md).</string>
 </resources>

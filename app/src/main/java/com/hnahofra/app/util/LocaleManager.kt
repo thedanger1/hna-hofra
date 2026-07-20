@@ -31,7 +31,13 @@ object LocaleManager {
 
     /** Enveloppe le contexte avec la langue choisie (à appeler dans attachBaseContext). */
     fun wrap(context: Context): Context {
-        val locale = Locale(currentLang(context))
+        // En arabe, on force le système de numérotation "latn" (chiffres 0-9)
+        // pour que le calendrier et les dates affichent 1,2,3… et non ١,٢,٣.
+        val locale = if (currentLang(context) == AR) {
+            Locale.forLanguageTag("ar-u-nu-latn")
+        } else {
+            Locale(currentLang(context))
+        }
         Locale.setDefault(locale)
         val config = Configuration(context.resources.configuration)
         config.setLocale(locale)

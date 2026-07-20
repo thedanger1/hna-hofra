@@ -47,6 +47,7 @@
     <string name="err_out_of_safi">يجب أن يكون الموقع داخل مدينة آسفي</string>
     <string name="ok_sent">شكرًا! تم تسجيل تبليغك.</string>
     <string name="perm_location_needed">امنح إذن الموقع لاستخدام «موقعي».</string>
+    <string name="err_location_unavailable">تعذّر تحديد الموقع. فعّل الـ GPS وأعد المحاولة.</string>
     <string name="perm_camera_needed">امنح إذن الكاميرا لالتقاط صورة.</string>
     <string name="config_missing">الإعداد ناقص: أدخل المفاتيح في secrets.xml (راجع SETUP.md).</string>
 </resources>
