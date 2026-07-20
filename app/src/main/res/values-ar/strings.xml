@@ -50,4 +50,20 @@
     <string name="err_location_unavailable">تعذّر تحديد الموقع. فعّل الـ GPS وأعد المحاولة.</string>
     <string name="perm_camera_needed">امنح إذن الكاميرا لالتقاط صورة.</string>
     <string name="config_missing">الإعداد ناقص: أدخل المفاتيح في secrets.xml (راجع SETUP.md).</string>
+
+    <!-- الإدارة / الإشراف -->
+    <string name="admin_login_title">دخول المشرف</string>
+    <string name="admin_email">البريد الإلكتروني</string>
+    <string name="admin_password">كلمة المرور</string>
+    <string name="admin_login">دخول</string>
+    <string name="admin_login_failed">بيانات الدخول غير صحيحة.</string>
+    <string name="admin_active">تم تفعيل وضع المشرف</string>
+    <string name="admin_logout">الخروج من وضع المشرف</string>
+    <string name="cancel">إلغاء</string>
+    <string name="delete">حذف</string>
+    <string name="delete_confirm">حذف هذا التبليغ نهائيًا؟</string>
+    <string name="deleted_ok">تم حذف التبليغ.</string>
+    <string name="action_failed">فشلت العملية. حاول مجددًا.</string>
+    <string name="admin_set_open">إرجاع إلى «حفرة»</string>
+    <string name="admin_set_repaired">وضع علامة «تم الإصلاح»</string>
 </resources>

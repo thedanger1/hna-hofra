@@ -1,5 +1,6 @@
 package com.hnahofra.app.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,8 +14,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -22,16 +29,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,14 +65,18 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polygon
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.hnahofra.app.R
+import com.hnahofra.app.data.AdminSession
 import com.hnahofra.app.data.Pothole
 import com.hnahofra.app.data.PotholeRepository
+import com.hnahofra.app.data.STATE_OPEN
+import com.hnahofra.app.data.STATE_REPAIRED
 import com.hnahofra.app.data.SupabaseConfig
 import com.hnahofra.app.util.MapIcons
 import com.hnahofra.app.util.Safi
 import java.text.DateFormat
 import java.util.Date
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val TEN_DAYS_MS = 10L * 24 * 60 * 60 * 1000
 
@@ -75,10 +88,13 @@ fun MapScreen(
     onRepair: (Pothole) -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val configured = remember { SupabaseConfig.isConfigured(context) }
+    val isAdmin = AdminSession.isActive
 
     var potholes by remember { mutableStateOf<List<Pothole>>(emptyList()) }
     var selected by remember { mutableStateOf<Pothole?>(null) }
+    var confirmDeleteId by remember { mutableStateOf<String?>(null) }
 
     // Rafraîchissement périodique via l'API REST Supabase : la carte est à jour
     // pour tout le monde toutes les ~12 s (et à chaque ouverture de l'écran).
@@ -117,6 +133,19 @@ fun MapScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                    }
+                },
+                actions = {
+                    if (isAdmin) {
+                        IconButton(onClick = {
+                            AdminSession.clear()
+                            Toast.makeText(context, R.string.admin_logout, Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Logout,
+                                contentDescription = stringResource(R.string.admin_logout)
+                            )
+                        }
                     }
                 }
             )
@@ -180,18 +209,64 @@ fun MapScreen(
             ) {
                 PotholeDetail(
                     pothole = p,
+                    isAdmin = isAdmin,
                     onRepair = {
                         selected = null
                         onRepair(p)
-                    }
+                    },
+                    onToggleState = {
+                        val newState = if (p.isRepaired) STATE_OPEN else STATE_REPAIRED
+                        selected = null
+                        scope.launch {
+                            val ok = PotholeRepository.setState(context, p.id, newState)
+                            if (ok) potholes = PotholeRepository.fetchAll(context)
+                            else Toast.makeText(context, R.string.action_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onDelete = { confirmDeleteId = p.id }
                 )
             }
+        }
+
+        // Confirmation de suppression (admin).
+        confirmDeleteId?.let { id ->
+            AlertDialog(
+                onDismissRequest = { confirmDeleteId = null },
+                title = { Text(stringResource(R.string.delete)) },
+                text = { Text(stringResource(R.string.delete_confirm)) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        confirmDeleteId = null
+                        selected = null
+                        scope.launch {
+                            val ok = PotholeRepository.delete(context, id)
+                            if (ok) potholes = PotholeRepository.fetchAll(context)
+                            Toast.makeText(
+                                context,
+                                if (ok) R.string.deleted_ok else R.string.action_failed,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }) { Text(stringResource(R.string.delete)) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { confirmDeleteId = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun PotholeDetail(pothole: Pothole, onRepair: () -> Unit) {
+private fun PotholeDetail(
+    pothole: Pothole,
+    isAdmin: Boolean,
+    onRepair: () -> Unit,
+    onToggleState: () -> Unit,
+    onDelete: () -> Unit
+) {
     val df = remember { DateFormat.getDateInstance(DateFormat.LONG) }
     Column(
         modifier = Modifier
@@ -244,6 +319,31 @@ private fun PotholeDetail(pothole: Pothole, onRepair: () -> Unit) {
             Button(onClick = onRepair, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Build, contentDescription = null)
                 Text("   " + stringResource(R.string.mark_repaired))
+            }
+        }
+
+        // Actions de modération réservées à l'administrateur.
+        if (isAdmin) {
+            Spacer(Modifier.height(12.dp))
+            OutlinedButton(onClick = onToggleState, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.SwapHoriz, contentDescription = null)
+                Text(
+                    "   " + stringResource(
+                        if (pothole.isRepaired) R.string.admin_set_open else R.string.admin_set_repaired
+                    )
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = onDelete,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = null)
+                Text("   " + stringResource(R.string.delete))
             }
         }
     }

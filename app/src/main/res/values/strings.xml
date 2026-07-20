@@ -50,4 +50,20 @@
     <string name="err_location_unavailable">Localisation indisponible. Activez le GPS et réessayez.</string>
     <string name="perm_camera_needed">Autorisez l\'appareil photo pour prendre une photo.</string>
     <string name="config_missing">Configuration manquante : renseignez les clés dans secrets.xml (voir SETUP.md).</string>
+
+    <!-- Administration / modération -->
+    <string name="admin_login_title">Connexion administrateur</string>
+    <string name="admin_email">E-mail</string>
+    <string name="admin_password">Mot de passe</string>
+    <string name="admin_login">Se connecter</string>
+    <string name="admin_login_failed">Identifiants invalides.</string>
+    <string name="admin_active">Mode admin activé</string>
+    <string name="admin_logout">Quitter le mode admin</string>
+    <string name="cancel">Annuler</string>
+    <string name="delete">Supprimer</string>
+    <string name="delete_confirm">Supprimer définitivement ce signalement ?</string>
+    <string name="deleted_ok">Signalement supprimé.</string>
+    <string name="action_failed">Action échouée. Réessayez.</string>
+    <string name="admin_set_open">Repasser en « nid-de-poule »</string>
+    <string name="admin_set_repaired">Marquer « réparé »</string>
 </resources>

@@ -33,3 +33,9 @@ create policy "potholes_insert" on public.potholes
 drop policy if exists "potholes_update" on public.potholes;
 create policy "potholes_update" on public.potholes
     for update using (true) with check (true);
+
+-- Suppression réservée à l'ADMIN connecté (Supabase Auth).
+-- Les visiteurs anonymes (clé anon) ne peuvent PAS supprimer.
+drop policy if exists "potholes_delete_admin" on public.potholes;
+create policy "potholes_delete_admin" on public.potholes
+    for delete using (auth.role() = 'authenticated');
