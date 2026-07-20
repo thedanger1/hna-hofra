@@ -18,7 +18,8 @@ data class Pothole(
     val lat: Double = 0.0,
     val lng: Double = 0.0,
     val imageUrl: String = "",
-    val dateMillis: Long = System.currentTimeMillis()
+    val dateMillis: Long = System.currentTimeMillis(),
+    val reportCount: Int = 0
 ) {
     val isRepaired: Boolean get() = state == STATE_REPAIRED
 }

@@ -66,4 +66,17 @@
     <string name="action_failed">فشلت العملية. حاول مجددًا.</string>
     <string name="admin_set_open">إرجاع إلى «حفرة»</string>
     <string name="admin_set_repaired">وضع علامة «تم الإصلاح»</string>
+
+    <!-- الإبلاغ عن مخالفة -->
+    <string name="report_problem">الإبلاغ عن مشكلة</string>
+    <string name="report_dialog_title">ما هي المشكلة؟</string>
+    <string name="reason_fake">صورة مزيفة / ليست حفرة</string>
+    <string name="reason_inappropriate">صورة غير لائقة</string>
+    <string name="reason_person">صورة شخص</string>
+    <string name="reason_other">أخرى</string>
+    <string name="report_thanks">شكرًا، تم إرسال البلاغ.</string>
+    <string name="reports_count">%1$d بلاغ</string>
+    <string name="reports_reasons_title">أسباب البلاغ:</string>
+    <string name="notif_pending_title">بلاغات للمراجعة</string>
+    <string name="notif_pending_text">%1$d بلاغ في انتظار الإشراف</string>
 </resources>

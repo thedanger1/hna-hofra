@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <!-- Halo blanc -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,48 m-44,0 a44,44 0 1,0 88,0 a44,44 0 1,0 -88,0" />
+    <!-- Cercle rouge (signalé) -->
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M48,48 m-38,0 a38,38 0 1,0 76,0 a38,38 0 1,0 -76,0" />
+    <!-- Point d'exclamation blanc -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M43,22 L53,22 L52,56 L44,56 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M48,66 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+</vector>

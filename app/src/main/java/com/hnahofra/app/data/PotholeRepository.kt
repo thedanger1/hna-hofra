@@ -134,6 +134,47 @@ object PotholeRepository {
             }
         }
 
+    /** Signalement d'abus par un visiteur (motif). Appelle la fonction RPC. */
+    suspend fun reportPothole(context: Context, id: String, reason: String): Boolean =
+        withContext(Dispatchers.IO) {
+            if (!SupabaseConfig.isConfigured(context)) return@withContext false
+            try {
+                val json = JSONObject().put("p_id", id).put("p_reason", reason)
+                val request = Request.Builder()
+                    .url("${SupabaseConfig.url(context)}/rest/v1/rpc/report_pothole")
+                    .withAuth(context)
+                    .header("Content-Type", "application/json")
+                    .post(json.toString().toRequestBody(JSON))
+                    .build()
+                client.newCall(request).execute().use { it.isSuccessful }
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+    /** Motifs des signalements d'un trou (réservé à l'admin connecté). */
+    suspend fun fetchReportReasons(context: Context, id: String): List<String> =
+        withContext(Dispatchers.IO) {
+            val token = AdminSession.token ?: return@withContext emptyList()
+            try {
+                val request = Request.Builder()
+                    .url("${SupabaseConfig.url(context)}/rest/v1/reports?pothole_id=eq.$id&select=reason&order=created_at.desc")
+                    .header("apikey", SupabaseConfig.anonKey(context))
+                    .header("Authorization", "Bearer $token")
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { resp ->
+                    if (!resp.isSuccessful) return@withContext emptyList()
+                    val arr = JSONArray(resp.body?.string() ?: return@withContext emptyList())
+                    (0 until arr.length()).mapNotNull {
+                        arr.getJSONObject(it).optString("reason").ifBlank { null }
+                    }
+                }
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+
     private fun parseList(body: String): List<Pothole> {
         val arr = JSONArray(body)
         val out = ArrayList<Pothole>(arr.length())
@@ -147,7 +188,8 @@ object PotholeRepository {
                     lat = o.optDouble("lat", 0.0),
                     lng = o.optDouble("lng", 0.0),
                     imageUrl = o.optString("image_url"),
-                    dateMillis = o.optLong("date", System.currentTimeMillis())
+                    dateMillis = o.optLong("date", System.currentTimeMillis()),
+                    reportCount = o.optInt("report_count", 0)
                 )
             )
         }

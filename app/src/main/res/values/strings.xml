@@ -66,4 +66,17 @@
     <string name="action_failed">Action échouée. Réessayez.</string>
     <string name="admin_set_open">Repasser en « nid-de-poule »</string>
     <string name="admin_set_repaired">Marquer « réparé »</string>
+
+    <!-- Signalement d'abus -->
+    <string name="report_problem">Signaler un problème</string>
+    <string name="report_dialog_title">Quel est le problème ?</string>
+    <string name="reason_fake">Fausse photo / pas un nid-de-poule</string>
+    <string name="reason_inappropriate">Image inappropriée</string>
+    <string name="reason_person">Photo d\'une personne</string>
+    <string name="reason_other">Autre</string>
+    <string name="report_thanks">Merci, signalement envoyé.</string>
+    <string name="reports_count">%1$d signalement(s)</string>
+    <string name="reports_reasons_title">Motifs signalés :</string>
+    <string name="notif_pending_title">Signalements à examiner</string>
+    <string name="notif_pending_text">%1$d signalement(s) en attente de modération</string>
 </resources>

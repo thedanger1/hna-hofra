@@ -1,6 +1,10 @@
 package com.hnahofra.app.ui
 
+import android.Manifest
+import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,8 +22,11 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -39,6 +46,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -72,6 +80,7 @@ import com.hnahofra.app.data.STATE_OPEN
 import com.hnahofra.app.data.STATE_REPAIRED
 import com.hnahofra.app.data.SupabaseConfig
 import com.hnahofra.app.util.MapIcons
+import com.hnahofra.app.util.Notifications
 import com.hnahofra.app.util.Safi
 import java.text.DateFormat
 import java.util.Date
@@ -95,6 +104,25 @@ fun MapScreen(
     var potholes by remember { mutableStateOf<List<Pothole>>(emptyList()) }
     var selected by remember { mutableStateOf<Pothole?>(null) }
     var confirmDeleteId by remember { mutableStateOf<String?>(null) }
+    var flagTarget by remember { mutableStateOf<Pothole?>(null) }
+
+    // Nombre de trous ayant au moins un signalement (pour l'admin).
+    val pendingReports = potholes.count { it.reportCount > 0 }
+
+    // Notification locale à l'admin quand des signalements sont en attente.
+    val notifPerm = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {}
+    LaunchedEffect(isAdmin) {
+        if (isAdmin && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notifPerm.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+    LaunchedEffect(isAdmin, pendingReports) {
+        if (isAdmin && pendingReports > 0) {
+            Notifications.showPendingReports(context, pendingReports)
+        }
+    }
 
     // Rafraîchissement périodique via l'API REST Supabase : la carte est à jour
     // pour tout le monde toutes les ~12 s (et à chaque ouverture de l'écran).
@@ -121,6 +149,10 @@ fun MapScreen(
         MapsInitializer.initialize(context)
         MapIcons.fromVector(context, R.drawable.ic_repaired)
     }
+    val flagIcon = remember {
+        MapsInitializer.initialize(context)
+        MapIcons.fromVector(context, R.drawable.ic_flag)
+    }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(Safi.CENTER, Safi.DEFAULT_ZOOM)
@@ -136,6 +168,18 @@ fun MapScreen(
                     }
                 },
                 actions = {
+                    if (isAdmin && pendingReports > 0) {
+                        BadgedBox(
+                            badge = { Badge { Text("$pendingReports") } },
+                            modifier = Modifier.padding(end = 12.dp)
+                        ) {
+                            Icon(
+                                Icons.Filled.Flag,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                     if (isAdmin) {
                         IconButton(onClick = {
                             AdminSession.clear()
@@ -187,7 +231,11 @@ fun MapScreen(
                 visible.forEach { p ->
                     Marker(
                         state = MarkerState(position = LatLng(p.lat, p.lng)),
-                        icon = if (p.isRepaired) repairedIcon else openIcon,
+                        icon = when {
+                            isAdmin && p.reportCount > 0 -> flagIcon
+                            p.isRepaired -> repairedIcon
+                            else -> openIcon
+                        },
                         onClick = {
                             selected = p
                             true
@@ -210,6 +258,7 @@ fun MapScreen(
                 PotholeDetail(
                     pothole = p,
                     isAdmin = isAdmin,
+                    onFlag = { flagTarget = p },
                     onRepair = {
                         selected = null
                         onRepair(p)
@@ -256,6 +305,48 @@ fun MapScreen(
                 }
             )
         }
+
+        // Choix du motif de signalement (visible par tous).
+        flagTarget?.let { p ->
+            val reasons = listOf(
+                "FAKE" to R.string.reason_fake,
+                "INAPPROPRIATE" to R.string.reason_inappropriate,
+                "PERSON" to R.string.reason_person,
+                "OTHER" to R.string.reason_other
+            )
+            AlertDialog(
+                onDismissRequest = { flagTarget = null },
+                title = { Text(stringResource(R.string.report_dialog_title)) },
+                text = {
+                    Column {
+                        reasons.forEach { (key, label) ->
+                            TextButton(
+                                onClick = {
+                                    flagTarget = null
+                                    selected = null
+                                    scope.launch {
+                                        val ok = PotholeRepository.reportPothole(context, p.id, key)
+                                        if (ok) potholes = PotholeRepository.fetchAll(context)
+                                        Toast.makeText(
+                                            context,
+                                            if (ok) R.string.report_thanks else R.string.action_failed,
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text(stringResource(label)) }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { flagTarget = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -263,6 +354,7 @@ fun MapScreen(
 private fun PotholeDetail(
     pothole: Pothole,
     isAdmin: Boolean,
+    onFlag: () -> Unit,
     onRepair: () -> Unit,
     onToggleState: () -> Unit,
     onDelete: () -> Unit
@@ -322,8 +414,42 @@ private fun PotholeDetail(
             }
         }
 
+        // Signaler un problème (photo non conforme, personne, faux trou…) — tout le monde.
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = onFlag, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Filled.Flag, contentDescription = null)
+            Text("   " + stringResource(R.string.report_problem))
+        }
+
         // Actions de modération réservées à l'administrateur.
         if (isAdmin) {
+            if (pothole.reportCount > 0) {
+                Spacer(Modifier.height(16.dp))
+                val context = LocalContext.current
+                val reasons by produceState(initialValue = emptyList<String>(), pothole.id) {
+                    value = PotholeRepository.fetchReportReasons(context, pothole.id)
+                }
+                Text(
+                    text = stringResource(R.string.reports_count, pothole.reportCount),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error
+                )
+                if (reasons.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.reports_reasons_title),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    reasons.forEach { r ->
+                        Text(
+                            text = "• " + reasonLabel(r),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(12.dp))
             OutlinedButton(onClick = onToggleState, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.SwapHoriz, contentDescription = null)
@@ -347,6 +473,14 @@ private fun PotholeDetail(
             }
         }
     }
+}
+
+@Composable
+private fun reasonLabel(key: String): String = when (key) {
+    "FAKE" -> stringResource(R.string.reason_fake)
+    "INAPPROPRIATE" -> stringResource(R.string.reason_inappropriate)
+    "PERSON" -> stringResource(R.string.reason_person)
+    else -> stringResource(R.string.reason_other)
 }
 
 @Composable
