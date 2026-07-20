@@ -1,2 +1,2 @@
-# Conserver les modèles Firestore (dé/sérialisation par réflexion)
+# Conserver les modèles de données (dé/sérialisation JSON)
 -keepclassmembers class com.hnahofra.app.data.** { *; }

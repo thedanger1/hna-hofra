@@ -1,42 +1,71 @@
 package com.hnahofra.app.data
 
 import android.content.Context
-import com.google.android.gms.tasks.Task
-import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ListenerRegistration
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
 
-/** Accès à la collection Firestore "potholes" (données partagées par tous). */
+/**
+ * Accès à la table Supabase "potholes" via l'API REST (PostgREST).
+ * Données partagées par tous les utilisateurs.
+ */
 object PotholeRepository {
 
-    private const val COLLECTION = "potholes"
+    private val client = OkHttpClient()
+    private val JSON = "application/json; charset=utf-8".toMediaType()
 
-    private fun col(context: Context) = run {
-        FirebaseInit.ensure(context)
-        FirebaseFirestore.getInstance().collection(COLLECTION)
+    private fun Request.Builder.withAuth(context: Context): Request.Builder {
+        val key = SupabaseConfig.anonKey(context)
+        return header("apikey", key)
+            .header("Authorization", "Bearer $key")
     }
 
-    /**
-     * Écoute en temps réel tous les trous. Retourne un enregistrement à retirer
-     * (onDispose). Null si Firebase n'est pas configuré.
-     */
-    fun listen(context: Context, onData: (List<Pothole>) -> Unit): ListenerRegistration? {
-        if (!FirebaseInit.ensure(context)) return null
-        return col(context).addSnapshotListener { snap, err ->
-            if (err != null || snap == null) return@addSnapshotListener
-            onData(snap.documents.mapNotNull { it.toObject(Pothole::class.java) })
+    /** Récupère tous les trous. Liste vide en cas d'erreur ou si non configuré. */
+    suspend fun fetchAll(context: Context): List<Pothole> = withContext(Dispatchers.IO) {
+        if (!SupabaseConfig.isConfigured(context)) return@withContext emptyList()
+        try {
+            val request = Request.Builder()
+                .url("${SupabaseConfig.restUrl(context)}?select=*")
+                .withAuth(context)
+                .get()
+                .build()
+            client.newCall(request).execute().use { resp ->
+                if (!resp.isSuccessful) return@withContext emptyList()
+                val body = resp.body?.string() ?: return@withContext emptyList()
+                parseList(body)
+            }
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 
     /** Crée un nouveau signalement. @return true si réussi. */
-    suspend fun add(context: Context, p: Pothole): Boolean = try {
-        col(context).add(p.copy(id = "")).awaitResult()
-        true
-    } catch (e: Exception) {
-        false
+    suspend fun add(context: Context, p: Pothole): Boolean = withContext(Dispatchers.IO) {
+        if (!SupabaseConfig.isConfigured(context)) return@withContext false
+        try {
+            val json = JSONObject()
+                .put("reporter_name", p.reporterName)
+                .put("state", p.state)
+                .put("lat", p.lat)
+                .put("lng", p.lng)
+                .put("image_url", p.imageUrl)
+                .put("date", p.dateMillis)
+            val request = Request.Builder()
+                .url(SupabaseConfig.restUrl(context))
+                .withAuth(context)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .post(json.toString().toRequestBody(JSON))
+                .build()
+            client.newCall(request).execute().use { it.isSuccessful }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     /** Marque un trou existant comme réparé (nouveau nom, photo et date). */
@@ -45,23 +74,44 @@ object PotholeRepository {
         id: String,
         reporterName: String,
         imageUrl: String
-    ): Boolean = try {
-        col(context).document(id).update(
-            mapOf(
-                "state" to STATE_REPAIRED,
-                "reporterName" to reporterName,
-                "imageUrl" to imageUrl,
-                "date" to Timestamp.now()
-            )
-        ).awaitResult()
-        true
-    } catch (e: Exception) {
-        false
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (!SupabaseConfig.isConfigured(context)) return@withContext false
+        try {
+            val json = JSONObject()
+                .put("state", STATE_REPAIRED)
+                .put("reporter_name", reporterName)
+                .put("image_url", imageUrl)
+                .put("date", System.currentTimeMillis())
+            val request = Request.Builder()
+                .url("${SupabaseConfig.restUrl(context)}?id=eq.$id")
+                .withAuth(context)
+                .header("Content-Type", "application/json")
+                .header("Prefer", "return=minimal")
+                .patch(json.toString().toRequestBody(JSON))
+                .build()
+            client.newCall(request).execute().use { it.isSuccessful }
+        } catch (e: Exception) {
+            false
+        }
     }
-}
 
-/** Convertit un Task Google en fonction suspendue. */
-suspend fun <T> Task<T>.awaitResult(): T = suspendCancellableCoroutine { cont ->
-    addOnSuccessListener { if (cont.isActive) cont.resume(it) }
-    addOnFailureListener { if (cont.isActive) cont.resumeWithException(it) }
+    private fun parseList(body: String): List<Pothole> {
+        val arr = JSONArray(body)
+        val out = ArrayList<Pothole>(arr.length())
+        for (i in 0 until arr.length()) {
+            val o = arr.getJSONObject(i)
+            out.add(
+                Pothole(
+                    id = o.optString("id"),
+                    reporterName = o.optString("reporter_name"),
+                    state = o.optString("state", STATE_OPEN),
+                    lat = o.optDouble("lat", 0.0),
+                    lng = o.optDouble("lng", 0.0),
+                    imageUrl = o.optString("image_url"),
+                    dateMillis = o.optLong("date", System.currentTimeMillis())
+                )
+            )
+        }
+        return out
+    }
 }

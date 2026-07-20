@@ -59,7 +59,6 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.firebase.Timestamp
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
@@ -67,12 +66,12 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.hnahofra.app.R
-import com.hnahofra.app.data.FirebaseInit
 import com.hnahofra.app.data.ImgbbUploader
 import com.hnahofra.app.data.Pothole
 import com.hnahofra.app.data.PotholeRepository
 import com.hnahofra.app.data.STATE_OPEN
 import com.hnahofra.app.data.STATE_REPAIRED
+import com.hnahofra.app.data.SupabaseConfig
 import com.hnahofra.app.util.LocationHelper
 import com.hnahofra.app.util.Safi
 import java.io.File
@@ -152,7 +151,7 @@ fun ReportScreen(
         if (name.isBlank()) { toast(context, R.string.err_name); return }
         val loc = picked ?: run { toast(context, R.string.err_location); return }
         if (photoUri == null) { toast(context, R.string.err_photo); return }
-        if (!ImgbbUploader.isConfigured(context) || !FirebaseInit.isConfigured(context)) {
+        if (!ImgbbUploader.isConfigured(context) || !SupabaseConfig.isConfigured(context)) {
             toast(context, R.string.config_missing); return
         }
         sending = true
@@ -174,8 +173,7 @@ fun ReportScreen(
                         lat = loc.latitude,
                         lng = loc.longitude,
                         imageUrl = url,
-                        date = Timestamp(Date(dateMillis)),
-                        createdAt = Timestamp.now()
+                        dateMillis = dateMillis
                     )
                 )
             }

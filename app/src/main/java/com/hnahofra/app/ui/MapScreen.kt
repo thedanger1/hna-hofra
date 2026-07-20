@@ -28,7 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,13 +52,14 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.hnahofra.app.R
-import com.hnahofra.app.data.FirebaseInit
 import com.hnahofra.app.data.Pothole
 import com.hnahofra.app.data.PotholeRepository
+import com.hnahofra.app.data.SupabaseConfig
 import com.hnahofra.app.util.MapIcons
 import com.hnahofra.app.util.Safi
 import java.text.DateFormat
 import java.util.Date
+import kotlinx.coroutines.delay
 
 private const val TEN_DAYS_MS = 10L * 24 * 60 * 60 * 1000
 
@@ -70,23 +71,24 @@ fun MapScreen(
     onRepair: (Pothole) -> Unit
 ) {
     val context = LocalContext.current
-    val configured = remember { FirebaseInit.isConfigured(context) }
+    val configured = remember { SupabaseConfig.isConfigured(context) }
 
     var potholes by remember { mutableStateOf<List<Pothole>>(emptyList()) }
     var selected by remember { mutableStateOf<Pothole?>(null) }
 
-    // Écoute temps réel de Firestore.
-    DisposableEffect(configured) {
-        val reg = if (configured) {
-            PotholeRepository.listen(context) { potholes = it }
-        } else null
-        onDispose { reg?.remove() }
+    // Rafraîchissement périodique via l'API REST Supabase : la carte est à jour
+    // pour tout le monde toutes les ~12 s (et à chaque ouverture de l'écran).
+    LaunchedEffect(configured) {
+        while (configured) {
+            potholes = PotholeRepository.fetchAll(context)
+            delay(12_000)
+        }
     }
 
     // Filtre : les trous réparés depuis plus de 10 jours disparaissent.
     val now = System.currentTimeMillis()
     val visible = potholes.filter { p ->
-        !p.isRepaired || (now - p.date.toDate().time) <= TEN_DAYS_MS
+        !p.isRepaired || (now - p.dateMillis) <= TEN_DAYS_MS
     }
 
     val openIcon = remember { MapIcons.fromVector(context, R.drawable.ic_pothole) }
@@ -212,7 +214,7 @@ private fun PotholeDetail(pothole: Pothole, onRepair: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge
         )
         Text(
-            text = stringResource(R.string.on_date, df.format(pothole.date.toDate())),
+            text = stringResource(R.string.on_date, df.format(Date(pothole.dateMillis))),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

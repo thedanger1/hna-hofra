@@ -32,29 +32,28 @@ Tant que les clés ne sont pas renseignées, l'app se lance mais affiche un band
 > Les photos sont conservées **6 mois** (limite gratuite d'imgbb), configuré
 > automatiquement par l'app.
 
-## 3) Firebase Firestore  → `firebase_project_id`, `firebase_app_id`, `firebase_api_key`
+## 3) Supabase  → `supabase_url`, `supabase_anon_key`
 
-1. Ouvrez https://console.firebase.google.com/ et **créez un projet** (gratuit,
-   plan Spark).
-2. Dans le projet : **Build > Firestore Database > Create database**
-   → démarrez en mode **production** → région `europe-west` (par ex.).
-3. Onglet **Règles** : collez le contenu du fichier [`firestore.rules`](firestore.rules)
-   puis **Publier**.
-4. Récupérez les 3 valeurs : icône ⚙️ **Paramètres du projet > Général**, puis
-   **Vos applications > Ajouter une application > Web** (icône `</>`).
-   Donnez un surnom, validez. Firebase affiche un bloc `firebaseConfig` :
-   ```js
-   const firebaseConfig = {
-     apiKey: "AIza........",        // -> firebase_api_key
-     projectId: "mon-projet-1234", // -> firebase_project_id
-     appId: "1:12345:web:abcdef",  // -> firebase_app_id
-     ...
-   };
-   ```
-5. Reportez ces 3 valeurs dans `secrets.xml`.
+> Supabase remplace Firebase : **gratuit, sans carte bancaire**.
 
-> Pas besoin de `google-services.json` : l'app initialise Firebase avec ces 3
-> valeurs directement.
+1. Ouvrez https://supabase.com/ → **Sign in** (avec GitHub, c'est le plus simple).
+2. **New project** : donnez un nom (ex. `hna-hofra`), un mot de passe de base de
+   données (notez-le), une région (ex. `Europe West`). Attendez ~1 min la création.
+3. **Créer la table** : menu de gauche **SQL Editor** → **New query** → collez tout
+   le contenu du fichier [`supabase_schema.sql`](supabase_schema.sql) → **Run**.
+   (Cela crée la table `potholes` et autorise l'accès anonyme.)
+4. **Récupérer les 2 valeurs** : menu de gauche ⚙️ **Project Settings > API** (aussi
+   appelé *Data API*) :
+   - **Project URL** → à coller dans `supabase_url`
+     (ressemble à `https://abcdefgh.supabase.co`)
+   - **Project API Keys > `anon` `public`** → à coller dans `supabase_anon_key`
+     (longue chaîne commençant par `eyJ...`)
+5. Reportez ces 2 valeurs dans `secrets.xml` (lignes `supabase_url` et
+   `supabase_anon_key`).
+
+> La clé `anon` est publique par nature : la sécurité vient des règles (RLS) du
+> fichier SQL, qui autorisent lecture / signalement / réparation mais **pas** la
+> suppression.
 
 ---
 

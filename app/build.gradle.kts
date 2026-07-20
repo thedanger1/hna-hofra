@@ -85,10 +85,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
 
-    // Firebase Firestore (base de données partagée) — initialisée manuellement,
-    // sans le plugin google-services (voir FirebaseInit.kt).
-    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    implementation("com.google.firebase:firebase-firestore-ktx")
+    // Base de données partagée : Supabase via son API REST (PostgREST), appelée
+    // avec OkHttp (voir data/SupabaseConfig.kt et data/PotholeRepository.kt).
 
     // Chargement des images (imgbb)
     implementation("io.coil-kt:coil-compose:2.6.0")
